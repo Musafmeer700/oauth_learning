@@ -1,6 +1,7 @@
 import { randomBytes } from "node:crypto";
 import {
 	buildGoogleAuthorizationUrl,
+	exchangeAuthorizationCode,
 	validateGoogleAuthorizationCallback,
 } from "../services/google-oauth.service.js";
 
@@ -32,14 +33,16 @@ export async function googleCallback(req, res) {
 
 	res.clearCookie(GOOGLE_STATE_COOKIE, GOOGLE_STATE_COOKIE_OPTIONS);
 
-	validateGoogleAuthorizationCallback(
+	const authorizationCode = validateGoogleAuthorizationCallback(
 		{ code, state, error, error_description },
 		storedState
 	);
+	const tokenExchange = await exchangeAuthorizationCode(authorizationCode);
 
 	return res.json({
 		success: true,
-		message: "Google authorization callback received successfully",
+		message: "Google authorization code exchanged successfully",
+		data: tokenExchange,
 	});
 }
 
