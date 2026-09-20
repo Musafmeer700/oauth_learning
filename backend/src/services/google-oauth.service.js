@@ -104,7 +104,7 @@ export async function exchangeAuthorizationCode(code) {
 		throw new AppError(buildGoogleTokenErrorMessage(payload), mapGoogleTokenStatus(response.status));
 	}
 
-	return summarizeGoogleTokenResponse(payload);
+	return extractGoogleIdToken(payload);
 }
 
 function assertGoogleOAuthConfigured() {
@@ -125,24 +125,15 @@ async function readGoogleJsonResponse(response) {
 	}
 }
 
-function summarizeGoogleTokenResponse(payload) {
-	const tokenType = asQueryString(payload?.token_type);
-	const expiresIn = Number(payload?.expires_in);
-	const hasAccessToken = asQueryString(payload?.access_token).length > 0;
-	const hasIdToken = asQueryString(payload?.id_token).length > 0;
-	const hasRefreshToken = asQueryString(payload?.refresh_token).length > 0;
+function extractGoogleIdToken(payload) {
+	const accessToken = asQueryString(payload?.access_token);
+	const idToken = asQueryString(payload?.id_token);
 
-	if (!hasAccessToken) {
+	if (!accessToken || !idToken) {
 		throw new AppError("Google token response was incomplete", 502);
 	}
 
-	return {
-		tokenType,
-		expiresIn: Number.isFinite(expiresIn) ? expiresIn : null,
-		hasAccessToken,
-		hasIdToken,
-		hasRefreshToken,
-	};
+	return { idToken };
 }
 
 function buildGoogleTokenErrorMessage(payload) {
