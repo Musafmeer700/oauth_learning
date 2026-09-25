@@ -9,7 +9,9 @@ const app = express();
 
 app.use(express.json());
 app.use(cors({ origin: env.clientUrl }));
+
 app.use('/api/v1', appRouter);
+
 app.use(notFoundMiddleware);
 app.use(errorMiddleware);
 

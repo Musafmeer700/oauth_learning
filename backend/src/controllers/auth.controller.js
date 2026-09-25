@@ -5,6 +5,7 @@ import {
 	validateGoogleAuthorizationCallback,
 } from "../services/google-oauth.service.js";
 import { verifyGoogleIdToken } from "../services/google-oidc.service.js";
+import { findOrCreateGoogleUser } from "../services/auth.service.js";
 
 const GOOGLE_STATE_COOKIE = "google_oauth_state";
 const GOOGLE_STATE_MAX_AGE = 10 * 60 * 1000;
@@ -38,13 +39,19 @@ export async function googleCallback(req, res) {
 		{ code, state, error, error_description },
 		storedState
 	);
+
 	const { idToken } = await exchangeAuthorizationCode(authorizationCode);
+
 	const identity = await verifyGoogleIdToken(idToken);
+	
+	const user = await findOrCreateGoogleUser(identity);
 
 	return res.json({
 		success: true,
-		message: "Google ID token verified successfully",
-		data: identity,
+		message: "Google authentication successful",
+		data: {
+			user,
+		},
 	});
 }
 
