@@ -6,11 +6,24 @@ import {
 } from "../services/google-oauth.service.js";
 import { verifyGoogleIdToken } from "../services/google-oidc.service.js";
 import { findOrCreateGoogleUser } from "../services/auth.service.js";
+import { generateAccessToken, generateRefreshToken } from "../services/token.service.js";
+import env from "../config/env.js";
+import { expiresInToMs } from "../utils/expires-in.js";
 
 const GOOGLE_STATE_COOKIE = "google_oauth_state";
 const GOOGLE_STATE_MAX_AGE = 10 * 60 * 1000;
 
 const GOOGLE_STATE_COOKIE_OPTIONS = {
+	httpOnly: true,
+	sameSite: "lax",
+	secure: false,
+	path: "/",
+};
+
+const ACCESS_TOKEN_COOKIE = "access_token";
+const REFRESH_TOKEN_COOKIE = "refresh_token";
+
+const APPLICATION_AUTH_COOKIE_OPTIONS = {
 	httpOnly: true,
 	sameSite: "lax",
 	secure: false,
@@ -43,8 +56,13 @@ export async function googleCallback(req, res) {
 	const { idToken } = await exchangeAuthorizationCode(authorizationCode);
 
 	const identity = await verifyGoogleIdToken(idToken);
-	
+
 	const user = await findOrCreateGoogleUser(identity);
+
+	const accessToken = await generateAccessToken(user);
+	const refreshToken = await generateRefreshToken(user);
+
+	setApplicationAuthCookies(res, { accessToken, refreshToken });
 
 	return res.json({
 		success: true,
@@ -52,6 +70,22 @@ export async function googleCallback(req, res) {
 		data: {
 			user,
 		},
+		
+	});
+}
+
+function setApplicationAuthCookies(res, { accessToken, refreshToken }) {
+	const accessTokenMaxAge = expiresInToMs(env.jwtAccessExpiresIn);
+	const refreshTokenMaxAge = expiresInToMs(env.jwtRefreshExpiresIn);
+
+	res.cookie(ACCESS_TOKEN_COOKIE, accessToken, {
+		...APPLICATION_AUTH_COOKIE_OPTIONS,
+		maxAge: accessTokenMaxAge,
+	});
+
+	res.cookie(REFRESH_TOKEN_COOKIE, refreshToken, {
+		...APPLICATION_AUTH_COOKIE_OPTIONS,
+		maxAge: refreshTokenMaxAge,
 	});
 }
 
