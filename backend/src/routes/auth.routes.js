@@ -1,5 +1,10 @@
 import express from "express";
-import { googleAuthorization, googleCallback, getMe } from "../controllers/auth.controller.js";
+import {
+    googleAuthorization,
+    googleCallback,
+    getMe,
+    refreshAccessToken,
+} from "../controllers/auth.controller.js";
 import authMiddleware from "../middlewares/auth.middleware.js";
 import { asyncHandler } from "../utils/async-handler.js";
 
@@ -8,5 +13,6 @@ const router = express.Router();
 router.get("/google", asyncHandler(googleAuthorization));
 router.get("/google/callback", asyncHandler(googleCallback));
 router.get("/me", authMiddleware, asyncHandler(getMe));
+router.post("/refresh", asyncHandler(refreshAccessToken));
 
 export default router;
