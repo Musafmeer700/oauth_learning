@@ -118,9 +118,19 @@ export async function refreshAccessToken(req, res) {
 
     setAccessTokenCookie(res, accessToken);
 
+	return res.json({
+		success: true,
+		message: "Access token refreshed",
+	});
+}
+
+export function logout(_req, res) {
+    res.clearCookie(ACCESS_TOKEN_COOKIE, APPLICATION_AUTH_COOKIE_OPTIONS);
+    res.clearCookie(REFRESH_TOKEN_COOKIE, APPLICATION_AUTH_COOKIE_OPTIONS);
+
     return res.json({
         success: true,
-        message: "Access token refreshed",
+        message: "Logged out",
     });
 }
 
