@@ -1,4 +1,5 @@
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import express from "express";
 import appRouter from "./routes/index.js";
 import notFoundMiddleware from "./middlewares/not-found.middleware.js";
@@ -8,6 +9,7 @@ import env from "./config/env.js";
 const app = express();
 
 app.use(express.json());
+app.use(cookieParser());
 app.use(cors({ origin: env.clientUrl }));
 
 app.use('/api/v1', appRouter);

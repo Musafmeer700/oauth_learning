@@ -70,7 +70,20 @@ export async function googleCallback(req, res) {
 		data: {
 			user,
 		},
-		
+	});
+}
+
+export function getMe(req, res) {
+	return res.json({
+		success: true,
+		data: {
+			user: {
+				id: String(req.user._id),
+				email: req.user.email,
+				name: req.user.name,
+				avatar: req.user.avatar,
+			},
+		},
 	});
 }
 

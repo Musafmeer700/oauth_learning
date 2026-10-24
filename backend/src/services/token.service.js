@@ -128,6 +128,7 @@ async function verifyApplicationToken({ token, secret, expectedType, typeLabel }
 	}
 
 	return {
+		sub: userId,
 		userId,
 		type: payload.type,
 	};
